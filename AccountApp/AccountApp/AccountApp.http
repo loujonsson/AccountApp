@@ -1,0 +1,11 @@
+@AccountApp_HostAddress = http://localhost:5100
+
+GET {{AccountApp_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{AccountApp_HostAddress}}/todos/1
+Accept: application/json
+
+###
