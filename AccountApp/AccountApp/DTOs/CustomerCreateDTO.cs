@@ -6,12 +6,12 @@ namespace AccountApp.DTOs
     {
         [Required]
         [StringLength(50)]
-        [RegularExpression(@"/^[a-z ,.'-]+$/i")]
+        [RegularExpression(@"^[a-zA-Z0-9][a-zA-Z0-9.,'\-_ ]*[a-zA-Z0-9]$")]
         public string FirstName { get; set; }
 
         [Required]
         [StringLength(50)]
-        [RegularExpression(@"/^[a-z ,.'-]+$/i")]
+        [RegularExpression(@"^[a-zA-Z0-9][a-zA-Z0-9.,'\-_ ]*[a-zA-Z0-9]$")]
         public string LastName { get; set; }
 
         [Required]

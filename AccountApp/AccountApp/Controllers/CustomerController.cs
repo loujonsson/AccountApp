@@ -19,13 +19,15 @@ namespace AccountApp.Controllers
         }
 
         [HttpGet]
+        [Route("GetCustomers")]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
         {
             var customers = await _context.Customers.ToListAsync();
             return Ok(customers);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("GetCustomer/{id}")]
         public async Task<ActionResult<Customer>> GetCustomer(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
@@ -47,6 +49,7 @@ namespace AccountApp.Controllers
         }
 
         [HttpPost]
+        [Route("CreateCustomer")]
         public async Task<ActionResult<Customer>> CreateCustomer(CustomerCreateDTO customerDTO)
         {
             if (!ModelState.IsValid)
@@ -67,7 +70,8 @@ namespace AccountApp.Controllers
             return CreatedAtAction(nameof(GetCustomer), new { id = customer.CustomerId }, customer);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
+        [Route("UpdateCustomer/{id}")]
         public async Task<IActionResult> UpdateCustomer(int id, CustomerUpdateDTO customerDTO)
         {
             if (id != customerDTO.CustomerId)
@@ -106,7 +110,8 @@ namespace AccountApp.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("DeleteCustomer/{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
