@@ -1,6 +1,6 @@
 ﻿namespace AccountApp.Models.Enums
 {
-    public enum Status
+    public enum AccountStatus
     {
         Active,
         Frozen,
