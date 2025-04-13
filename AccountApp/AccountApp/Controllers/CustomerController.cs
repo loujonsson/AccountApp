@@ -1,5 +1,5 @@
 ﻿using AccountApp.Data;
-using AccountApp.DTOs;
+using AccountApp.DTOs.Customer;
 using AccountApp.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

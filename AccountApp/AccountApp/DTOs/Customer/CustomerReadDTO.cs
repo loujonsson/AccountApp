@@ -1,4 +1,4 @@
-﻿namespace AccountApp.DTOs
+﻿namespace AccountApp.DTOs.Customer
 {
     public class CustomerReadDTO
     {

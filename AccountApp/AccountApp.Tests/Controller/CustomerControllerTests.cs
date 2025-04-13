@@ -1,5 +1,5 @@
 ﻿using AccountApp.Controllers;
-using AccountApp.DTOs;
+using AccountApp.DTOs.Customer;
 using AccountApp.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +30,6 @@ namespace AccountApp.Tests.Controller
 
             _context.Customers.AddRange(customers);
             await _context.SaveChangesAsync();
-               
 
             // Act
             var result = await _sut.GetCustomers();
@@ -96,7 +95,7 @@ namespace AccountApp.Tests.Controller
         public async Task CreateCustomer_ReturnsCreatedResult_WhenCustomerIsValid()
         {
             // Arrange
-            var newCustomer = new DTOs.CustomerCreateDTO
+            var newCustomer = new CustomerCreateDTO
             {
                 FirstName = "Anna",
                 LastName = "Eriksson",
@@ -124,7 +123,7 @@ namespace AccountApp.Tests.Controller
         public async Task CreateCustomer_ReturnsBadRequest_WhenModelStateIsInvalid()
         {
             // Arrange
-            var invalidCustomer = new DTOs.CustomerCreateDTO
+            var invalidCustomer = new CustomerCreateDTO
             {
                 FirstName = null,
                 LastName = "Eriksson",
@@ -156,7 +155,7 @@ namespace AccountApp.Tests.Controller
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            var updatedCustomer = new CustomerUpdateDTO
             {
                 CustomerId = 1,
                 FirstName = "Updated",
@@ -191,7 +190,7 @@ namespace AccountApp.Tests.Controller
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            var updatedCustomer = new CustomerUpdateDTO
             {
                 CustomerId = 1,
                 FirstName = "Updated",
@@ -215,7 +214,7 @@ namespace AccountApp.Tests.Controller
         public async Task UpdateCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
         {
             // Arrange
-            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            var updatedCustomer = new CustomerUpdateDTO
             {
                 CustomerId = 404,
                 FirstName = "Updated",
@@ -245,7 +244,7 @@ namespace AccountApp.Tests.Controller
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            var updatedCustomer = new CustomerUpdateDTO
             {
                 CustomerId = 2, // Fel ID
                 FirstName = "Updated",
