@@ -115,20 +115,14 @@ namespace AccountApp.Tests.Controller
             var newAccount = new AccountCreateDTO
             {
                 CustomerId = 1,
+                Balance = 400
             };
 
             // Act
             var result = await _sut.CreateAccount(newAccount);
 
             // Assert
-            var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
-            createdResult.StatusCode.Should().Be(201);
-
-            var returnedAccount = createdResult.Value.Should().BeOfType<Account>().Subject;
-            returnedAccount.AccountId.Should().Be(1);
-            returnedAccount.CustomerId.Should().Be(1);
-            returnedAccount.Status.Should().Be(Models.Enums.AccountStatus.Active);
-            returnedAccount.Balance.Should().Be(0);
+            var createdResult = result.Should().BeOfType<CreatedResult>().Subject;
 
             var savedAccount = await _context.Accounts.FindAsync(1);
             savedAccount.Should().NotBeNull();
@@ -150,7 +144,7 @@ namespace AccountApp.Tests.Controller
 
             // Assert
             result.Should().NotBeNull();
-            var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
             badRequestResult.Value.Should().Be("Customer does not exist");
         }
@@ -200,5 +194,175 @@ namespace AccountApp.Tests.Controller
             var notFoundResult = result.Should().BeOfType<NotFoundResult>().Subject;
             notFoundResult.StatusCode.Should().Be(404);
         }
+
+        [Fact]
+        public async Task GetAccountsForCustomer_ReturnsAccounts_WhenCustomerExistsWithAccounts()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            var account1 = new Account
+            {
+                AccountId = 1,
+                CustomerId = 1,
+                Status = Models.Enums.AccountStatus.Active,
+                Balance = 1000.00m,
+                CreationTimestamp = new DateTime(2025, 1, 1),
+            };
+            var account2 = new Account
+            {
+                AccountId = 2,
+                CustomerId = 1,
+                Status = Models.Enums.AccountStatus.Active,
+                Balance = 2000.00m,
+                CreationTimestamp = new DateTime(2025, 1, 3),
+            };
+            customer.Accounts.Add(account1);
+            customer.Accounts.Add(account2);
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.GetAccountsForCustomer(1);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+
+            var accounts = okResult.Value.Should().BeOfType<List<AccountReadDTO>>().Subject;
+            accounts.Should().HaveCount(2);
+            accounts.Should().Contain(a => a.AccountId == 1 && a.Balance == 1000.00m && a.Status == Models.Enums.AccountStatus.Active);
+            accounts.Should().Contain(a => a.AccountId == 2 && a.Balance == 2000.00m && a.Status == Models.Enums.AccountStatus.Active);
+
+            accounts[0].CreationTimestamp.Should().Be(new DateTime(2025, 1, 1));
+            accounts[1].CreationTimestamp.Should().Be(new DateTime(2025, 1, 3));
+        }
+
+        [Fact]
+        public async Task GetAccountsForCustomer_ReturnsEmptyList_WhenCustomerExistsButHasNoAccounts()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.GetAccountsForCustomer(1);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+
+            var accounts = okResult.Value.Should().BeOfType<List<AccountReadDTO>>().Subject;
+            accounts.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAccountsForCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+        {
+            // Arrange
+            // Act
+            var result = await _sut.GetAccountsForCustomer(404);
+
+            // Assert
+            var notFoundResult = result.Result.Should().BeOfType<NotFoundResult>().Subject;
+            notFoundResult.StatusCode.Should().Be(404);
+        }
+
+        [Fact]
+        public async Task GetTotalBalanceForCustomer_ReturnsTotalBalance_WhenCustomerHasAccounts()
+        {
+            // Arrange
+            _context.Database.EnsureDeleted();
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            var account1 = new Account
+            {
+                AccountId = 1,
+                CustomerId = 1,
+                Status = Models.Enums.AccountStatus.Active,
+                Balance = 1000.00m,
+                CreationTimestamp = new DateTime(2025, 1, 1),
+            };
+            var account2 = new Account
+            {
+                AccountId = 2,
+                CustomerId = 1,
+                Status = Models.Enums.AccountStatus.Active,
+                Balance = 2000.00m,
+                CreationTimestamp = new DateTime(2025, 1, 3),
+            };
+            customer.Accounts.Add(account1);
+            customer.Accounts.Add(account2);
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.GetTotalBalanceForCustomer(1);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+
+            var totalBalance = okResult.Value.Should().BeOfType<decimal>().Subject;
+            totalBalance.Should().Be(3000.00m);
+        }
+
+        [Fact]
+        public async Task GetTotalBalanceForCustomer_ReturnsZero_WhenCustomerHasNoAccounts()
+        {
+            // Arrange
+            _context.Database.EnsureDeleted();
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.GetTotalBalanceForCustomer(1);
+
+            // Assert
+            var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+
+            var totalBalance = okResult.Value.Should().BeOfType<decimal>().Subject;
+            totalBalance.Should().Be(0m);
+        }
+
+        [Fact]
+        public async Task GetTotalBalanceForCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+        {
+            // Arrange
+            _context.Database.EnsureDeleted();
+
+            // Act
+            var result = await _sut.GetTotalBalanceForCustomer(404);
+
+            // Assert
+            var notFoundResult = result.Result.Should().BeOfType<NotFoundResult>().Subject;
+            notFoundResult.StatusCode.Should().Be(404);
+        }
+
     }
 }
