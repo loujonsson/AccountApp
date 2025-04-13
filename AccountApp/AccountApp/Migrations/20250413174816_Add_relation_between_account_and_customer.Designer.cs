@@ -4,6 +4,7 @@ using AccountApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountApp.Migrations
 {
     [DbContext(typeof(AccountAppDbContext))]
-    partial class AccountAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250413174816_Add_relation_between_account_and_customer")]
+    partial class Add_relation_between_account_and_customer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
