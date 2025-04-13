@@ -1,5 +1,6 @@
 ﻿using AccountApp.Models.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace AccountApp.Models
 {

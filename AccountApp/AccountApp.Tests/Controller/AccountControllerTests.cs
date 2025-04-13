@@ -96,5 +96,109 @@ namespace AccountApp.Tests.Controller
             var notFoundResult = result.Result.Should().BeOfType<NotFoundResult>().Subject;
             notFoundResult.StatusCode.Should().Be(404);
         }
+
+        [Fact]
+        public async Task CreateAccount_ReturnsCreatedResult_WhenCustomerExists()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            var newAccount = new AccountCreateDTO
+            {
+                CustomerId = 1,
+            };
+
+            // Act
+            var result = await _sut.CreateAccount(newAccount);
+
+            // Assert
+            var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+            createdResult.StatusCode.Should().Be(201);
+
+            var returnedAccount = createdResult.Value.Should().BeOfType<Account>().Subject;
+            returnedAccount.AccountId.Should().Be(1);
+            returnedAccount.CustomerId.Should().Be(1);
+            returnedAccount.Status.Should().Be(Models.Enums.AccountStatus.Active);
+            returnedAccount.Balance.Should().Be(0);
+
+            var savedAccount = await _context.Accounts.FindAsync(1);
+            savedAccount.Should().NotBeNull();
+            savedAccount.Status.Should().Be(Models.Enums.AccountStatus.Active);
+        }
+
+        [Fact]
+        public async Task CreateAccount_ReturnsBadRequest_WhenCustomerDoesNotExist()
+        {
+            // Arrange
+            var newAccount = new AccountCreateDTO
+            {
+                CustomerId = 404, 
+                Balance = 1000.00m
+            };
+
+            // Act
+            var result = await _sut.CreateAccount(newAccount);
+
+            // Assert
+            result.Should().NotBeNull();
+            var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequestResult.StatusCode.Should().Be(400);
+            badRequestResult.Value.Should().Be("Customer does not exist");
+        }
+
+        [Fact]
+        public async Task DeleteAccount_ReturnsNoContent_WhenAccountIsDeleted()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            var account = new Account
+            {
+                AccountId = 1,
+                CustomerId = 1,
+                Status = Models.Enums.AccountStatus.Active,
+                Balance = 1000.00m
+            };
+            _context.Accounts.Add(account);
+            _context.Customers.Add(customer);
+
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.DeleteAccount(1);
+
+            // Assert
+            var noContentResult = result.Should().BeOfType<NoContentResult>().Subject;
+            noContentResult.StatusCode.Should().Be(204);
+
+            var deletedAccount = await _context.Accounts.FindAsync(1);
+            deletedAccount.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteAccount_ReturnsNotFound_WhenAccountDoesNotExist()
+        {
+            // Arrange
+            // Act
+            var result = await _sut.DeleteAccount(404);
+
+            // Assert
+            var notFoundResult = result.Should().BeOfType<NotFoundResult>().Subject;
+            notFoundResult.StatusCode.Should().Be(404);
+        }
     }
 }
