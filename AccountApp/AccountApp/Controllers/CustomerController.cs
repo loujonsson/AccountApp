@@ -86,7 +86,21 @@ namespace AccountApp.Controllers
                 return NotFound();
             }
 
-            _context.Entry(customerDTO).CurrentValues.SetValues(existingCustomer);
+            if (!string.IsNullOrWhiteSpace(customerDTO.FirstName))
+            {
+                existingCustomer.FirstName = customerDTO.FirstName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerDTO.LastName))
+            {
+                existingCustomer.LastName = customerDTO.LastName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerDTO.PhoneNumber))
+            {
+                existingCustomer.PhoneNumber = customerDTO.PhoneNumber;
+            }
+
             await _context.SaveChangesAsync();
             
             return NoContent();

@@ -1,4 +1,5 @@
 ﻿using AccountApp.Controllers;
+using AccountApp.DTOs;
 using AccountApp.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -74,7 +75,7 @@ namespace AccountApp.Tests.Controller
             var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
             okResult.StatusCode.Should().Be(200);
 
-            var returnedCustomer = okResult.Value.Should().BeOfType<Customer>().Subject;
+            var returnedCustomer = okResult.Value.Should().BeOfType<CustomerReadDTO>().Subject;
             returnedCustomer.FirstName.Should().Be("Test");
             returnedCustomer.LastName.Should().Be("Testsson");
         }
@@ -117,6 +118,185 @@ namespace AccountApp.Tests.Controller
             var savedCustomer = await _context.Customers.FindAsync(1);
             savedCustomer.Should().NotBeNull();
             savedCustomer.FirstName.Should().Be("Anna");
+        }
+
+        [Fact]
+        public async Task CreateCustomer_ReturnsBadRequest_WhenModelStateIsInvalid()
+        {
+            // Arrange
+            var invalidCustomer = new DTOs.CustomerCreateDTO
+            {
+                FirstName = null,
+                LastName = "Eriksson",
+                PhoneNumber = "0701234567",
+            };
+
+            _sut.ModelState.AddModelError("FirstName", "FirstName is required");
+
+            // Act
+            var result = await _sut.CreateCustomer(invalidCustomer);
+
+            // Assert
+            result.Should().NotBeNull();
+            var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequestResult.StatusCode.Should().Be(400);
+        }
+
+        [Fact]
+        public async Task UpdateCustomer_ReturnsNoContent_WhenCustomerIsUpdatedCompletely()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566",
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            {
+                CustomerId = 1,
+                FirstName = "Updated",
+                LastName = "New last name",
+                PhoneNumber = "0739481739",
+            };
+
+            // Act
+            var result = await _sut.UpdateCustomer(1, updatedCustomer);
+
+            // Assert
+            var noContentResult = result.Should().BeOfType<NoContentResult>().Subject;
+            noContentResult.StatusCode.Should().Be(204);
+
+            var savedCustomer = await _context.Customers.FindAsync(1);
+            savedCustomer.FirstName.Should().Be("Updated");
+            savedCustomer.PhoneNumber.Should().Be("0739481739");
+            savedCustomer.LastName.Should().Be("New last name");
+        }
+
+        [Fact]
+        public async Task UpdateCustomer_ReturnsNoContent_WhenCustomerIsUpdatedPartly()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566",
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            {
+                CustomerId = 1,
+                FirstName = "Updated",
+                PhoneNumber = "0739481739",
+            };
+
+            // Act
+            var result = await _sut.UpdateCustomer(1, updatedCustomer);
+
+            // Assert
+            var noContentResult = result.Should().BeOfType<NoContentResult>().Subject;
+            noContentResult.StatusCode.Should().Be(204);
+
+            var savedCustomer = await _context.Customers.FindAsync(1);
+            savedCustomer.FirstName.Should().Be("Updated");
+            savedCustomer.PhoneNumber.Should().Be("0739481739");
+            savedCustomer.LastName.Should().Be("Testsson");
+        }
+
+        [Fact]
+        public async Task UpdateCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+        {
+            // Arrange
+            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            {
+                CustomerId = 404,
+                FirstName = "Updated",
+                LastName = "Testsson",
+                PhoneNumber = "0739481739"
+            };
+
+            // Act
+            var result = await _sut.UpdateCustomer(404, updatedCustomer);
+
+            // Assert
+            var notFoundResult = result.Should().BeOfType<NotFoundResult>().Subject;
+            notFoundResult.StatusCode.Should().Be(404);
+        }
+
+        [Fact]
+        public async Task UpdateCustomer_ReturnsBadRequest_WhenIdsDoNotMatch()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            var updatedCustomer = new DTOs.CustomerUpdateDTO
+            {
+                CustomerId = 2, // Fel ID
+                FirstName = "Updated",
+                LastName = "Testsson",
+                PhoneNumber = "0739481739"
+            };
+
+            // Act
+            var result = await _sut.UpdateCustomer(1, updatedCustomer);
+
+            // Assert
+            var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequestResult.StatusCode.Should().Be(400);
+        }
+
+        [Fact]
+        public async Task DeleteCustomer_ReturnsNoContent_WhenCustomerIsDeleted()
+        {
+            // Arrange
+            var customer = new Customer
+            {
+                CustomerId = 1,
+                FirstName = "Test",
+                LastName = "Testsson",
+                PhoneNumber = "0712344566"
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _sut.DeleteCustomer(1);
+
+            // Assert
+            var noContentResult = result.Should().BeOfType<NoContentResult>().Subject;
+            noContentResult.StatusCode.Should().Be(204);
+
+            // Verifiera att kunden togs bort
+            var deletedCustomer = await _context.Customers.FindAsync(1);
+            deletedCustomer.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteCustomer_ReturnsNotFound_WhenCustomerDoesNotExist()
+        {
+            // Arrange
+            // Act
+            var result = await _sut.DeleteCustomer(404);
+
+            // Assert
+            var notFoundResult = result.Should().BeOfType<NotFoundResult>().Subject;
+            notFoundResult.StatusCode.Should().Be(404);
         }
     }
 }
