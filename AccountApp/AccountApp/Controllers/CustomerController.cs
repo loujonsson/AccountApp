@@ -49,6 +49,11 @@ namespace AccountApp.Controllers
         [HttpPost]
         public async Task<ActionResult<Customer>> CreateCustomer(CustomerCreateDTO customerDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var customer = new Customer
             {
                 FirstName = customerDTO.FirstName,
@@ -68,6 +73,11 @@ namespace AccountApp.Controllers
             if (id != customerDTO.CustomerId)
             {
                 return BadRequest("Customer IDs don't match");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             var existingCustomer = await _context.Customers.FindAsync(id);
