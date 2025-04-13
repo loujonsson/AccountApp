@@ -14,7 +14,12 @@ namespace AccountApp.Data
         {
             modelBuilder.Entity<Account>()
                 .Property(a => a.Balance)
-                .HasPrecision(18, 2); 
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Customer)
+                .WithMany(c => c.Accounts)
+                .HasForeignKey(a => a.CustomerId);
 
             modelBuilder.Entity<Customer>().HasData(
                 new Customer { CustomerId = 1, FirstName = "Anna", LastName = "Johansson", PhoneNumber = "0712345672" },

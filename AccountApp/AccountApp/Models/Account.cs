@@ -11,5 +11,7 @@ namespace AccountApp.Models
         public DateTime? UpdatedTimestamp { get; set; }
         public AccountStatus Status { get; set; }
         public decimal Balance { get; set; }
+
+        public Customer Customer { get; set; }
     }
 }
