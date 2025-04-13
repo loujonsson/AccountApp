@@ -8,16 +8,14 @@ namespace AccountApp.Data
     {
         public AccountAppDbContext(DbContextOptions<AccountAppDbContext> options) : base(options) { }
 
-        public DbSet<Customer> Customers;
-        public DbSet<Account> Accounts;
-
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Account> Accounts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Account>()
                 .Property(a => a.Balance)
                 .HasPrecision(18, 2); 
 
-            // Seed Customers
             modelBuilder.Entity<Customer>().HasData(
                 new Customer { CustomerId = 1, FirstName = "Anna", LastName = "Johansson", PhoneNumber = "0712345672" },
                 new Customer { CustomerId = 2, FirstName = "Test", LastName = "Testsson", PhoneNumber = "0723123453" },
